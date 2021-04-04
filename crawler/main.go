@@ -45,11 +45,11 @@ func main() {
 	started := time.Now()
 
 	ctx, cancel := context.WithCancel(context.Background())
-	go watchSignals(cancel)
+
 	defer cancel()
 
 	crawler := newCrawler(depthLimit)
-
+	go watchSignals(crawler, cancel)
 	// создаём канал для результатов
 	results := make(chan crawlResult)
 
@@ -67,18 +67,27 @@ func main() {
 }
 
 // ловим сигналы выключения
-func watchSignals(cancel context.CancelFunc) {
+func watchSignals(c *crawler, cancel context.CancelFunc) {
 	osSignalChan := make(chan os.Signal)
 
 	signal.Notify(osSignalChan,
 		syscall.SIGINT,
-		syscall.SIGTERM)
+		syscall.SIGTERM,
+		syscall.SIGUSR1)
 
 	sig := <-osSignalChan
-	log.Printf("got signal %q", sig.String())
+	// добавляем по условию добавление глубины в crawler
+	for {
+		if sig.(syscall.Signal) == syscall.SIGUSR1 {
 
-	// если сигнал получен, отменяем контекст работы
-	cancel()
+			c.maxDepth = 10
+			continue
+		}
+		log.Printf("got signal %q", sig.String())
+		// если сигнал получен, отменяем контекст работы
+		cancel()
+		return
+	}
 }
 
 func watchCrawler(ctx context.Context, results <-chan crawlResult, maxErrors, maxResults int) chan struct{} {
