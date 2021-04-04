@@ -31,7 +31,9 @@ func newCrawler(maxDepth int) *crawler {
 func (c *crawler) run(ctx context.Context, url string, results chan<- crawlResult, depth int) {
 	// просто для того, чтобы успевать следить за выводом программы, можно убрать :)
 	time.Sleep(2 * time.Second)
-
+	//Создаём новый контекст
+	ctxTimeOut, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 	// проверяем что контекст исполнения актуален
 	select {
 	case <-ctx.Done():
@@ -43,7 +45,7 @@ func (c *crawler) run(ctx context.Context, url string, results chan<- crawlResul
 			return
 		}
 
-		page, err := parse(url)
+		page, err := parse(url, ctxTimeOut)
 		if err != nil {
 			// ошибку отправляем в канал, а не обрабатываем на месте
 			results <- crawlResult{
@@ -52,8 +54,8 @@ func (c *crawler) run(ctx context.Context, url string, results chan<- crawlResul
 			return
 		}
 
-		title := pageTitle(page)
-		links := pageLinks(nil, page)
+		title := pageTitle(page, ctxTimeOut)
+		links := pageLinks(nil, page, ctxTimeOut)
 
 		// блокировка требуется, т.к. мы модифицируем мапку в несколько горутин
 		c.Lock()
