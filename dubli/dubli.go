@@ -14,9 +14,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"io/ioutil"
-	"log"
 	"os"
+	//"log"
 	"sort"
 	"sync"
 	"time"
@@ -28,16 +29,37 @@ var walked_lock sync.Mutex
 // walk_single однопоточный поиск дублей
 //поиск осуществляется по наименованию и размеру файла
 func walk_single(path string) {
+	log.SetFormatter(&log.JSONFormatter{})
+	//hlog := log.WithFields(standardFields)
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
-		log.Fatal(err)
+		log.WithFields(log.Fields{
+			"func":  "walk_single",
+			"error": err,
+			"path":  path,
+		}).Error("not find path")
+		//log.Fatal(err)
 	}
 	for _, f := range files {
 		if f.IsDir() {
+			if err != nil {
+				log.WithFields(log.Fields{
+					"func":  "walk_single",
+					"error": err,
+					"dir":   path,
+				}).Panic("error dir")
+			}
 			walk_single(path + "\\" + f.Name())
 		} else {
 			hash := fmt.Sprintf("%s%d", f.Name(), f.Size())
+			log.WithFields(log.Fields{
+				"func":     "walk_single",
+				"file":     f,
+				"nameFile": f.Name(),
+				"sizeEile": f.Size(),
+			}).Info("info files")
 			walked_files[hash] = append(walked_files[hash], path+"\\"+f.Name())
+
 		}
 
 	}
@@ -46,16 +68,35 @@ func walk_single(path string) {
 //walk_multi многопоточный поиск дублей
 //поиск осуществляется по наименованию и размеру файла
 func walk_multi(wg *sync.WaitGroup, path string) {
+	log.SetFormatter(&log.JSONFormatter{})
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
-		log.Fatal(err)
+		log.WithFields(log.Fields{
+			"func":  "walk_multi",
+			"error": err,
+			"path":  path,
+		}).Error("not find path")
+		//	log.Fatal(err)
 	}
 	for _, f := range files {
 		if f.IsDir() {
 			wg.Add(1)
+			if err != nil {
+				log.WithFields(log.Fields{
+					"func":  "walk_multi",
+					"error": err,
+					"dir":   path,
+				}).Panic("error dir")
+			}
 			go walk_multi(wg, path+"\\"+f.Name())
 		} else {
 			hash := fmt.Sprintf("%s%d", f.Name(), f.Size())
+			log.WithFields(log.Fields{
+				"func":     "walk_multi",
+				"file":     f,
+				"nameFile": f.Name(),
+				"sizeEile": f.Size(),
+			}).Info("info files")
 			walked_lock.Lock()
 			walked_files[hash] = append(walked_files[hash], path+"\\"+f.Name())
 			walked_lock.Unlock()
