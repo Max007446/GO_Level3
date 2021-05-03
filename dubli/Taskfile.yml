@@ -1,0 +1,6 @@
+version: '3'
+lint:
+    desc: Runs golint
+    cmds:
+      - golint {{catLines .GO_PACKAGES}}
+    silent: true
