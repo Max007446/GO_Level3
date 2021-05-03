@@ -1,14 +1,7 @@
 repos:
--   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v3.4.0
+-   repo: https://github.com/dnephin/pre-commit-golang
+    rev: master
     hooks:
-    -   id: trailing-whitespace
-    -   id: end-of-file-fixer
-    -   id: check-docstring-first
-    -   id: check-json
-    -   id: check-added-large-files
-    -   id: check-yaml
-    -   id: debug-statements
-    -   id: name-tests-test
-    -   id: double-quote-string-fixer
-    -   id: requirements-txt-fixer
+    -   id: go-imports
+    -   id: golanci-lint
+    -   id: go-init-test
