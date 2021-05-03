@@ -48,7 +48,6 @@ enable:
     - structcheck
     - stylecheck
     - typecheck
-    - unconvert
     - unparam
     - unused
     - varcheck
