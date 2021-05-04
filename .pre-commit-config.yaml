@@ -4,4 +4,5 @@ repos:
     hooks:
     -   id: go-imports
     -   id: golangci-lint
-    -   id: go-init-tests
+    - id: go-unit-tests
+    - id: go-mod-tidy
