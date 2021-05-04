@@ -3,5 +3,5 @@ repos:
     rev: v0.3.5
     hooks:
     -   id: go-imports
-    -   id: golanci-lint
+    -   id: golangci-lint
     -   id: go-init-test
